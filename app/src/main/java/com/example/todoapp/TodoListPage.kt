@@ -1,5 +1,6 @@
 package com.example.todoapp
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +33,7 @@ import java.util.Locale
 @Composable
 fun TodoListPage(modifier: Modifier = Modifier, viewModel: TodoListPageViewModel) {
 
-    val todoList = getDebugTodo()
+    val todoList = viewModel.todoList
     val inputText by viewModel.inputText
 
     Column (
@@ -55,7 +57,7 @@ fun TodoListPage(modifier: Modifier = Modifier, viewModel: TodoListPageViewModel
             )
 
             FloatingActionButton(
-                onClick = {}
+                onClick = { viewModel.addTodo(inputText)}
             ) {
                 Icon(
                     painter = painterResource(R.drawable.outline_add_24),
@@ -64,21 +66,22 @@ fun TodoListPage(modifier: Modifier = Modifier, viewModel: TodoListPageViewModel
             }
         }
 
-
-
-
-        // List Rendering
-        LazyColumn(){
-            itemsIndexed(todoList) { index: Int, todoItem: Todo ->
-                TodoItem(todoItem = todoItem)
-            }
+        if (todoList.isNotEmpty()) {
+            // List Rendering
+            LazyColumn(content = {
+                itemsIndexed(todoList) { index: Int, todoItem: Todo ->
+                    TodoItem(viewModel = viewModel, todoItem = todoItem)
+                }
+            })
+        } else {
+            Text(text = "No items yet.")
         }
     }
 }
 
 // Composable for the formatting of each individual todo item
 @Composable
-fun TodoItem(modifier: Modifier = Modifier, todoItem: Todo) {
+fun TodoItem(modifier: Modifier = Modifier, viewModel: TodoListPageViewModel, todoItem: Todo) {
     Row(
         modifier = Modifier.fillMaxWidth()
             .padding(8.dp)
@@ -106,7 +109,7 @@ fun TodoItem(modifier: Modifier = Modifier, todoItem: Todo) {
         }
 
         IconButton(
-            onClick = {}
+            onClick = { viewModel.deleteTodo(id = todoItem.id) }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_delete_24),
