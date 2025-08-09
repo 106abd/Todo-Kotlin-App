@@ -19,7 +19,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,19 +68,24 @@ fun TodoListPage(modifier: Modifier = Modifier, viewModel: TodoListPageViewModel
         if (todoList.isNotEmpty()) {
             // List Rendering
             LazyColumn(content = {
-                itemsIndexed(todoList) { index: Int, todoItem: Todo ->
-                    TodoItem(viewModel = viewModel, todoItem = todoItem)
+                itemsIndexed(todoList.reversed()) { index: Int, todoItem: Todo ->
+                    TodoItem(todoItem = todoItem, onDelete = {
+                        viewModel.deleteTodo(id = todoItem.id)
+                    })
                 }
             })
         } else {
-            Text(text = "No items yet.")
+            Text(
+                text = "No items yet.",
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
     }
 }
 
 // Composable for the formatting of each individual todo item
 @Composable
-fun TodoItem(modifier: Modifier = Modifier, viewModel: TodoListPageViewModel, todoItem: Todo) {
+fun TodoItem(modifier: Modifier = Modifier, todoItem: Todo, onDelete : () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth()
             .padding(8.dp)
@@ -109,7 +113,7 @@ fun TodoItem(modifier: Modifier = Modifier, viewModel: TodoListPageViewModel, to
         }
 
         IconButton(
-            onClick = { viewModel.deleteTodo(id = todoItem.id) }
+            onClick = { onDelete() }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_delete_24),
